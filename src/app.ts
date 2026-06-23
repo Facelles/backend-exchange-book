@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes';
 import bookRoutes from './routes/bookRoutes';
 import meRoutes from './routes/meRoutes';
 import adminRoutes from './routes/adminRoutes';
+import profileRoutes from './routes/profileRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

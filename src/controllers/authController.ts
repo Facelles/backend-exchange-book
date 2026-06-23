@@ -80,3 +80,74 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+import crypto from 'crypto';
+import { sendPasswordResetEmail } from '../services/mailerService';
+import { Op } from 'sequelize';
+
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body as { email: string };
+    if (!email) {
+      res.status(400).json({ message: 'Email is required' });
+      return;
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      // Don't leak if user exists
+      res.json({ message: 'If that email exists, a reset link was sent.' });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 3600000); // 1 hour
+
+    await user.update({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: resetExpires,
+    });
+
+    await sendPasswordResetEmail(user.email, resetToken);
+
+    res.json({ message: 'If that email exists, a reset link was sent.' });
+  } catch (err) {
+    console.error('forgotPassword error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, newPassword } = req.body as { token: string; newPassword: string };
+    if (!token || !newPassword) {
+      res.status(400).json({ message: 'Token and new password are required' });
+      return;
+    }
+
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({ message: 'Invalid or expired reset token' });
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await user.update({
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    });
+
+    res.json({ message: 'Password has been successfully reset' });
+  } catch (err) {
+    console.error('resetPassword error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

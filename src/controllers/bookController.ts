@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Op } from 'sequelize';
-import { Book, User } from '../models';
+import { Book, User, ExchangeRequest } from '../models';
 import { sendExchangeEmail } from '../services/mailerService';
 
 export const getBookById = async (
@@ -164,6 +164,13 @@ export const requestExchange = async (
       senderEmail: req.user!.email,
       requestedBook: { name: book.name, author: book.author },
       senderBooks,
+    });
+
+    await ExchangeRequest.create({
+      senderId: req.user!.id,
+      receiverId: book.ownerId,
+      bookId: book.id,
+      status: 'PENDING',
     });
 
     res.json({ message: `Exchange request sent to ${owner.email}` });

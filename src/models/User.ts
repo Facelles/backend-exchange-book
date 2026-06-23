@@ -17,6 +17,10 @@ class User extends Model<
   declare email: string;
   declare password: string;
   declare role: CreationOptional<UserRole>;
+  declare name: CreationOptional<string | null>;
+  declare avatarUrl: CreationOptional<string | null>;
+  declare resetPasswordToken: CreationOptional<string | null>;
+  declare resetPasswordExpires: CreationOptional<Date | null>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -44,6 +48,26 @@ User.init(
       type: DataTypes.ENUM('ADMIN', 'USER'),
       allowNull: false,
       defaultValue: 'USER',
+    },
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    avatarUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      defaultValue: null,
+    },
+    resetPasswordToken: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      defaultValue: null,
+    },
+    resetPasswordExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
