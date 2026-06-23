@@ -82,7 +82,8 @@ export const sendPasswordResetEmail = async (
   token: string,
 ): Promise<void> => {
   const transporter = createTransporter();
-  const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
+  const frontendUrl = process.env["FRONTEND_URL"]?.replace(/\/$/, "") ?? "http://localhost:3000";
+  const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -98,6 +99,11 @@ export const sendPasswordResetEmail = async (
       <p>This link will expire in 1 hour.</p>
     </div>
   `;
+
+  console.log(`\n================================`);
+  console.log(`PASSWORD RESET URL (For Testing):`);
+  console.log(resetUrl);
+  console.log(`================================\n`);
 
   await transporter.sendMail({
     from:

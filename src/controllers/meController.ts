@@ -137,7 +137,8 @@ export const respondToRequest = async (
     exchangeRequest.status = status;
     await exchangeRequest.save();
 
-    if (status === "ACCEPTED") {
+    if (status === 'ACCEPTED') {
+      // Swap ownership
       const requestedBook = await Book.findByPk(exchangeRequest.bookId);
       if (requestedBook) {
         requestedBook.ownerId = exchangeRequest.senderId;
@@ -151,24 +152,26 @@ export const respondToRequest = async (
           await offeredBook.save();
         }
       }
+
       await ExchangeRequest.update(
-        { status: "REJECTED" },
+        { status: 'REJECTED' },
         {
           where: {
             bookId: exchangeRequest.bookId,
-            status: "PENDING",
+            status: 'PENDING',
           },
-        },
+        }
       );
+
       if (exchangeRequest.offeredBookId) {
         await ExchangeRequest.update(
-          { status: "REJECTED" },
+          { status: 'REJECTED' },
           {
             where: {
               bookId: exchangeRequest.offeredBookId,
-              status: "PENDING",
+              status: 'PENDING',
             },
-          },
+          }
         );
       }
     }

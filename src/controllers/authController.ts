@@ -106,7 +106,12 @@ export const forgotPassword = async (
       resetPasswordExpires: resetExpires,
     });
 
-    await sendPasswordResetEmail(user.email, resetToken);
+    try {
+      await sendPasswordResetEmail(user.email, resetToken);
+    } catch (emailErr) {
+      console.error("Failed to send reset email:", emailErr);
+      // We still return the generic message for security
+    }
 
     res.json({ message: "If that email exists, a reset link was sent." });
   } catch (err) {

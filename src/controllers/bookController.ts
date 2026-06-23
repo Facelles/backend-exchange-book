@@ -138,7 +138,7 @@ export const requestExchange = async (
 ): Promise<void> => {
   try {
     const bookId = Number(req.params["id"]);
-    const { offeredBookId } = req.body as { offeredBookId?: number };
+    const { offeredBookId } = (req.body || {}) as { offeredBookId?: number };
 
     const book = await Book.findByPk(bookId, {
       include: [{ model: User, as: "owner", attributes: ["id", "email"] }],
