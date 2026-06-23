@@ -9,6 +9,13 @@ interface ExchangeEmailOptions {
   senderBooks: Book[];
 }
 
+const escHtml = (str: string) =>
+  str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
 const createTransporter = () =>
   nodemailer.createTransport({
     host: process.env['SMTP_HOST'] ?? 'smtp.gmail.com',
@@ -24,24 +31,24 @@ const buildHtml = (opts: ExchangeEmailOptions): string => {
   const bookListHtml =
     opts.senderBooks.length > 0
       ? opts.senderBooks
-          .map((b) => `<li><strong>${b.name}</strong> by ${b.author}</li>`)
+          .map((b) => `<li><strong>${escHtml(b.name)}</strong> by ${escHtml(b.author)}</li>`)
           .join('')
       : '<li><em>No books listed yet</em></li>';
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>Book Exchange Request</h2>
-      <p>Hello <strong>${opts.ownerName}</strong>,</p>
+      <p>Hello <strong>${escHtml(opts.ownerName)}</strong>,</p>
       <p>
-        <strong>${opts.senderEmail}</strong> is interested in exchanging for your book:
+        <strong>${escHtml(opts.senderEmail)}</strong> is interested in exchanging for your book:
       </p>
       <blockquote style="border-left: 4px solid #6c63ff; padding-left: 12px; margin: 16px 0;">
-        <strong>${opts.requestedBook.name}</strong> — <em>${opts.requestedBook.author}</em>
+        <strong>${escHtml(opts.requestedBook.name)}</strong> — <em>${escHtml(opts.requestedBook.author)}</em>
       </blockquote>
       <h3>Books they are offering:</h3>
       <ul>${bookListHtml}</ul>
       <p>
-        Reply directly to <a href="mailto:${opts.senderEmail}">${opts.senderEmail}</a>
+        Reply directly to <a href="mailto:${escHtml(opts.senderEmail)}">${escHtml(opts.senderEmail)}</a>
         to arrange the exchange.
       </p>
       <hr/>

@@ -6,10 +6,9 @@ import { generateToken } from '../middleware/auth';
 // POST /api/register
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, role } = req.body as {
+    const { email, password } = req.body as {
       email: string;
       password: string;
-      role?: 'ADMIN' | 'USER';
     };
 
     if (!email || !password) {
@@ -28,7 +27,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const user = await User.create({
       email,
       password: hashedPassword,
-      role: role === 'ADMIN' ? 'ADMIN' : 'USER',
+      role: 'USER',
     });
 
     const token = generateToken(user);
