@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import Book from '../models/Book';
+import nodemailer from "nodemailer";
+import Book from "../models/Book";
 
 interface ExchangeEmailOptions {
   toEmail: string;
@@ -11,19 +11,19 @@ interface ExchangeEmailOptions {
 
 const escHtml = (str: string) =>
   str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 
 const createTransporter = () =>
   nodemailer.createTransport({
-    host: process.env['SMTP_HOST'] ?? 'smtp.gmail.com',
-    port: Number(process.env['SMTP_PORT'] ?? 587),
+    host: process.env["SMTP_HOST"] ?? "smtp.gmail.com",
+    port: Number(process.env["SMTP_PORT"] ?? 587),
     secure: false,
     auth: {
-      user: process.env['SMTP_USER'],
-      pass: process.env['SMTP_PASS'],
+      user: process.env["SMTP_USER"],
+      pass: process.env["SMTP_PASS"],
     },
   });
 
@@ -31,9 +31,12 @@ const buildHtml = (opts: ExchangeEmailOptions): string => {
   const bookListHtml =
     opts.senderBooks.length > 0
       ? opts.senderBooks
-          .map((b) => `<li><strong>${escHtml(b.name)}</strong> by ${escHtml(b.author)}</li>`)
-          .join('')
-      : '<li><em>No books listed yet</em></li>';
+          .map(
+            (b) =>
+              `<li><strong>${escHtml(b.name)}</strong> by ${escHtml(b.author)}</li>`,
+          )
+          .join("")
+      : "<li><em>No books listed yet</em></li>";
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -60,12 +63,13 @@ const buildHtml = (opts: ExchangeEmailOptions): string => {
 };
 
 export const sendExchangeEmail = async (
-  opts: ExchangeEmailOptions
+  opts: ExchangeEmailOptions,
 ): Promise<void> => {
   const transporter = createTransporter();
 
   await transporter.sendMail({
-    from: process.env['SMTP_FROM'] ?? '"Book Exchange" <no-reply@bookexchange.com>',
+    from:
+      process.env["SMTP_FROM"] ?? '"Book Exchange" <no-reply@bookexchange.com>',
     to: opts.toEmail,
     replyTo: opts.senderEmail,
     subject: `Exchange request for "${opts.requestedBook.name}"`,
@@ -75,7 +79,7 @@ export const sendExchangeEmail = async (
 
 export const sendPasswordResetEmail = async (
   toEmail: string,
-  token: string
+  token: string,
 ): Promise<void> => {
   const transporter = createTransporter();
 
@@ -98,9 +102,10 @@ export const sendPasswordResetEmail = async (
   `;
 
   await transporter.sendMail({
-    from: process.env['SMTP_FROM'] ?? '"Book Exchange" <no-reply@bookexchange.com>',
+    from:
+      process.env["SMTP_FROM"] ?? '"Book Exchange" <no-reply@bookexchange.com>',
     to: toEmail,
-    subject: 'Password Reset - Book Exchange',
+    subject: "Password Reset - Book Exchange",
     html,
   });
 };

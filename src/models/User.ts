@@ -4,15 +4,12 @@ import {
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
-} from 'sequelize';
-import sequelize from '../config/database';
+} from "sequelize";
+import sequelize from "../config/database";
 
-export type UserRole = 'ADMIN' | 'USER';
+export type UserRole = "ADMIN" | "USER";
 
-class User extends Model<
-  InferAttributes<User>,
-  InferCreationAttributes<User>
-> {
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
   declare email: string;
   declare password: string;
@@ -47,9 +44,9 @@ User.init(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM('ADMIN', 'USER'),
+      type: DataTypes.ENUM("ADMIN", "USER"),
       allowNull: false,
-      defaultValue: 'USER',
+      defaultValue: "USER",
     },
     name: {
       type: DataTypes.STRING(255),
@@ -83,9 +80,9 @@ User.init(
   },
   {
     sequelize,
-    tableName: 'users',
-    modelName: 'User',
-  }
+    tableName: "users",
+    modelName: "User",
+  },
 );
 
 export default User;

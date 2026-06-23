@@ -1,14 +1,17 @@
-import { Request, Response } from 'express';
-import { User, Book, ExchangeRequest } from '../models';
+import { Request, Response } from "express";
+import { User, Book, ExchangeRequest } from "../models";
 
-export const getProfile = async (req: Request, res: Response): Promise<void> => {
+export const getProfile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const user = await User.findByPk(req.user!.id, {
-      attributes: ['id', 'email', 'name', 'avatarUrl', 'role', 'createdAt'],
+      attributes: ["id", "email", "name", "avatarUrl", "role", "createdAt"],
     });
 
     if (!user) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
       return;
     }
 
@@ -19,18 +22,24 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
       bookCount,
     });
   } catch (err) {
-    console.error('getProfile error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("getProfile error:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateProfile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { name, avatarUrl } = req.body as { name?: string; avatarUrl?: string };
+    const { name, avatarUrl } = req.body as {
+      name?: string;
+      avatarUrl?: string;
+    };
 
     const user = await User.findByPk(req.user!.id);
     if (!user) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
       return;
     }
 
@@ -47,30 +56,85 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       role: user.role,
     });
   } catch (err) {
-    console.error('updateProfile error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("updateProfile error:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const getRequests = async (req: Request, res: Response): Promise<void> => {
+export const getRequests = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const userId = req.user!.id;
 
     const requests = await ExchangeRequest.findAll({
       where: {
-        receiverId: userId
+        receiverId: userId,
       },
       include: [
-        { model: User, as: 'sender', attributes: ['id', 'email', 'name', 'avatarUrl'] },
-        { model: User, as: 'receiver', attributes: ['id', 'email', 'name', 'avatarUrl'] },
-        { model: Book, as: 'book', attributes: ['id', 'name', 'author', 'photoUrl'] },
+        {
+          model: User,
+          as: "sender",
+          attributes: ["id", "email", "name", "avatarUrl"],
+        },
+        {
+          model: User,
+          as: "receiver",
+          attributes: ["id", "email", "name", "avatarUrl"],
+        },
+        {
+          model: Book,
+          as: "book",
+          attributes: ["id", "name", "author", "photoUrl"],
+        },
       ],
-      order: [['createdAt', 'DESC']],
+      order: [["createdAt", "DESC"]],
     });
 
     res.json(requests);
   } catch (err) {
-    console.error('getRequests error:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("getRequests error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const respondToRequest = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const requestId = Number(req.params["id"]);
+    const { status } = req.body as { status: "ACCEPTED" | "REJECTED" };
+
+    if (status !== "ACCEPTED" && status !== "REJECTED") {
+      res.status(400).json({ message: "Invalid status" });
+      return;
+    }
+
+    const exchangeRequest = await ExchangeRequest.findByPk(requestId);
+
+    if (!exchangeRequest) {
+      res.status(404).json({ message: "Request not found" });
+      return;
+    }
+
+    if (exchangeRequest.receiverId !== req.user!.id) {
+      res.status(403).json({ message: "Forbidden" });
+      return;
+    }
+
+    if (exchangeRequest.status !== "PENDING") {
+      res.status(400).json({ message: "Request is already processed" });
+      return;
+    }
+
+    exchangeRequest.status = status;
+    await exchangeRequest.save();
+
+    res.json(exchangeRequest);
+  } catch (err) {
+    console.error("respondToRequest error:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

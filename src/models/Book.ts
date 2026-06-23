@@ -6,19 +6,16 @@ import {
   CreationOptional,
   ForeignKey,
   NonAttribute,
-} from 'sequelize';
-import sequelize from '../config/database';
-import User from './User';
+} from "sequelize";
+import sequelize from "../config/database";
+import User from "./User";
 
-class Book extends Model<
-  InferAttributes<Book>,
-  InferCreationAttributes<Book>
-> {
+class Book extends Model<InferAttributes<Book>, InferCreationAttributes<Book>> {
   declare id: CreationOptional<number>;
   declare name: string;
   declare author: string;
   declare photoUrl: CreationOptional<string | null>;
-  declare ownerId: ForeignKey<User['id']>;
+  declare ownerId: ForeignKey<User["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -50,23 +47,23 @@ Book.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'users',
-        key: 'id',
+        model: "users",
+        key: "id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
-    tableName: 'books',
-    modelName: 'Book',
-  }
+    tableName: "books",
+    modelName: "Book",
+  },
 );
 
 // Associations
-Book.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' });
-User.hasMany(Book, { foreignKey: 'ownerId', as: 'books' });
+Book.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
+User.hasMany(Book, { foreignKey: "ownerId", as: "books" });
 
 export default Book;
