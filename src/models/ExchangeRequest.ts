@@ -88,12 +88,13 @@ ExchangeRequest.init(
     modelName: "ExchangeRequest",
   },
 );
-ExchangeRequest.belongsTo(User, { foreignKey: "senderId", as: "sender" });
-ExchangeRequest.belongsTo(User, { foreignKey: "receiverId", as: "receiver" });
-ExchangeRequest.belongsTo(Book, { foreignKey: "bookId", as: "book" });
+ExchangeRequest.belongsTo(User, { foreignKey: "senderId", as: "sender", onDelete: "CASCADE" });
+ExchangeRequest.belongsTo(User, { foreignKey: "receiverId", as: "receiver", onDelete: "CASCADE" });
+ExchangeRequest.belongsTo(Book, { foreignKey: "bookId", as: "book", onDelete: "CASCADE" });
 ExchangeRequest.belongsTo(Book, {
   foreignKey: "offeredBookId",
   as: "offeredBook",
+  onDelete: "CASCADE",
 });
 
 export default ExchangeRequest;

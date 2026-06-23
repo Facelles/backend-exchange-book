@@ -59,7 +59,7 @@ Book.init(
     modelName: "Book",
   },
 );
-Book.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
-User.hasMany(Book, { foreignKey: "ownerId", as: "books" });
+Book.belongsTo(User, { foreignKey: "ownerId", as: "owner", onDelete: "CASCADE" });
+User.hasMany(Book, { foreignKey: "ownerId", as: "books", onDelete: "CASCADE" });
 
 export default Book;
