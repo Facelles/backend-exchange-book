@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Op } from 'sequelize';
 import { User, Book, ExchangeRequest } from '../models';
 
 export const getProfile = async (req: Request, res: Response): Promise<void> => {
@@ -57,9 +56,6 @@ export const getRequests = async (req: Request, res: Response): Promise<void> =>
   try {
     const userId = req.user!.id;
 
-    // We want exchange requests where the user is either the sender or the receiver
-    // The front-end probably wants them separated, or we can just return all
-    // Let's return all where the user is involved
     const requests = await ExchangeRequest.findAll({
       where: {
         receiverId: userId
