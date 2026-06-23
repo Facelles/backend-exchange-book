@@ -158,20 +158,25 @@ export const requestExchange = async (
 
     const owner = book.owner!;
 
-    await sendExchangeEmail({
-      toEmail: owner.email,
-      ownerName: owner.email,
-      senderEmail: req.user!.email,
-      requestedBook: { name: book.name, author: book.author },
-      senderBooks,
-    });
-
     await ExchangeRequest.create({
       senderId: req.user!.id,
       receiverId: book.ownerId,
       bookId: book.id,
       status: 'PENDING',
     });
+
+    try {
+      await sendExchangeEmail({
+        toEmail: owner.email,
+        ownerName: owner.email,
+        senderEmail: req.user!.email,
+        requestedBook: { name: book.name, author: book.author },
+        senderBooks,
+      });
+    } catch (emailErr) {
+      console.error('Failed to send exchange email:', emailErr);
+      // We don't fail the whole request just because the email didn't send
+    }
 
     res.json({ message: `Exchange request sent to ${owner.email}` });
   } catch (err) {
