@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { User } from "../models";
 import { generateToken } from "../middleware/auth";
-
-// POST /api/register
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as {
@@ -42,8 +40,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// POST /api/login
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as {
@@ -98,7 +94,6 @@ export const forgotPassword = async (
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      // Don't leak if user exists
       res.json({ message: "If that email exists, a reset link was sent." });
       return;
     }

@@ -21,14 +21,14 @@ class ExchangeRequest extends Model<
   declare senderId: ForeignKey<User["id"]>;
   declare receiverId: ForeignKey<User["id"]>;
   declare bookId: ForeignKey<Book["id"]>;
+  declare offeredBookId: CreationOptional<ForeignKey<Book["id"]>>;
   declare status: CreationOptional<ExchangeStatus>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-
-  // Eager-loaded associations
   declare sender?: NonAttribute<User>;
   declare receiver?: NonAttribute<User>;
   declare book?: NonAttribute<Book>;
+  declare offeredBook?: NonAttribute<Book>;
 }
 
 ExchangeRequest.init(
@@ -65,6 +65,15 @@ ExchangeRequest.init(
       },
       onDelete: "CASCADE",
     },
+    offeredBookId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "books",
+        key: "id",
+      },
+      onDelete: "SET NULL",
+    },
     status: {
       type: DataTypes.ENUM("PENDING", "ACCEPTED", "REJECTED"),
       allowNull: false,
@@ -79,10 +88,12 @@ ExchangeRequest.init(
     modelName: "ExchangeRequest",
   },
 );
-
-// Associations
 ExchangeRequest.belongsTo(User, { foreignKey: "senderId", as: "sender" });
 ExchangeRequest.belongsTo(User, { foreignKey: "receiverId", as: "receiver" });
 ExchangeRequest.belongsTo(Book, { foreignKey: "bookId", as: "book" });
+ExchangeRequest.belongsTo(Book, {
+  foreignKey: "offeredBookId",
+  as: "offeredBook",
+});
 
 export default ExchangeRequest;

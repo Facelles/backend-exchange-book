@@ -88,6 +88,11 @@ export const getRequests = async (
           as: "book",
           attributes: ["id", "name", "author", "photoUrl"],
         },
+        {
+          model: Book,
+          as: "offeredBook",
+          attributes: ["id", "name", "author", "photoUrl"],
+        },
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -131,6 +136,42 @@ export const respondToRequest = async (
 
     exchangeRequest.status = status;
     await exchangeRequest.save();
+
+    if (status === "ACCEPTED") {
+      const requestedBook = await Book.findByPk(exchangeRequest.bookId);
+      if (requestedBook) {
+        requestedBook.ownerId = exchangeRequest.senderId;
+        await requestedBook.save();
+      }
+
+      if (exchangeRequest.offeredBookId) {
+        const offeredBook = await Book.findByPk(exchangeRequest.offeredBookId);
+        if (offeredBook) {
+          offeredBook.ownerId = exchangeRequest.receiverId;
+          await offeredBook.save();
+        }
+      }
+      await ExchangeRequest.update(
+        { status: "REJECTED" },
+        {
+          where: {
+            bookId: exchangeRequest.bookId,
+            status: "PENDING",
+          },
+        },
+      );
+      if (exchangeRequest.offeredBookId) {
+        await ExchangeRequest.update(
+          { status: "REJECTED" },
+          {
+            where: {
+              bookId: exchangeRequest.offeredBookId,
+              status: "PENDING",
+            },
+          },
+        );
+      }
+    }
 
     res.json(exchangeRequest);
   } catch (err) {

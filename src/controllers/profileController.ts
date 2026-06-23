@@ -73,7 +73,6 @@ export const getExchangeRequests = async (
   res: Response,
 ): Promise<void> => {
   try {
-    // Get requests where this user is the receiver (someone wants their book)
     const incomingRequests = await ExchangeRequest.findAll({
       where: { receiverId: req.user!.id },
       include: [

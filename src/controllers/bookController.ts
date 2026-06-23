@@ -138,6 +138,7 @@ export const requestExchange = async (
 ): Promise<void> => {
   try {
     const bookId = Number(req.params["id"]);
+    const { offeredBookId } = req.body as { offeredBookId?: number };
 
     const book = await Book.findByPk(bookId, {
       include: [{ model: User, as: "owner", attributes: ["id", "email"] }],
@@ -153,6 +154,14 @@ export const requestExchange = async (
       return;
     }
 
+    if (offeredBookId) {
+      const offeredBook = await Book.findByPk(offeredBookId);
+      if (!offeredBook || offeredBook.ownerId !== req.user!.id) {
+        res.status(400).json({ message: "Invalid offered book" });
+        return;
+      }
+    }
+
     const senderBooks = await Book.findAll({
       where: { ownerId: req.user!.id },
       attributes: ["id", "name", "author"],
@@ -164,6 +173,7 @@ export const requestExchange = async (
       senderId: req.user!.id,
       receiverId: book.ownerId,
       bookId: book.id,
+      offeredBookId: offeredBookId || undefined,
       status: "PENDING",
     });
 
@@ -177,7 +187,6 @@ export const requestExchange = async (
       });
     } catch (emailErr) {
       console.error("Failed to send exchange email:", emailErr);
-      // We don't fail the whole request just because the email didn't send
     }
 
     res.json({ message: `Exchange request sent to ${owner.email}` });

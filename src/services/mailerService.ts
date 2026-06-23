@@ -82,8 +82,6 @@ export const sendPasswordResetEmail = async (
   token: string,
 ): Promise<void> => {
   const transporter = createTransporter();
-
-  // URL of the frontend reset password page
   const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
 
   const html = `

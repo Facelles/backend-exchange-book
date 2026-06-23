@@ -18,8 +18,6 @@ class Book extends Model<InferAttributes<Book>, InferCreationAttributes<Book>> {
   declare ownerId: ForeignKey<User["id"]>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-
-  // Eager-loaded association (populated by include: [User])
   declare owner?: NonAttribute<User>;
 }
 
@@ -61,8 +59,6 @@ Book.init(
     modelName: "Book",
   },
 );
-
-// Associations
 Book.belongsTo(User, { foreignKey: "ownerId", as: "owner" });
 User.hasMany(Book, { foreignKey: "ownerId", as: "books" });
 
