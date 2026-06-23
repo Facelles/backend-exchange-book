@@ -17,11 +17,11 @@ const escHtml = (str: string) =>
     .replace(/"/g, "&quot;");
 
 const createTransporter = () => {
-  const port = Number(process.env["SMTP_PORT"] ?? 465); // Default to 465 for cloud compatibility
+  const port = Number(process.env["SMTP_PORT"] ?? 465);
   return nodemailer.createTransport({
     host: process.env["SMTP_HOST"] ?? "smtp.gmail.com",
     port,
-    secure: port === 465, // true for 465, false for other ports
+    secure: port === 465,
     auth: {
       user: process.env["SMTP_USER"],
       pass: process.env["SMTP_PASS"],
@@ -33,11 +33,11 @@ const buildHtml = (opts: ExchangeEmailOptions): string => {
   const bookListHtml =
     opts.senderBooks.length > 0
       ? opts.senderBooks
-          .map(
-            (b) =>
-              `<li><strong>${escHtml(b.name)}</strong> by ${escHtml(b.author)}</li>`,
-          )
-          .join("")
+        .map(
+          (b) =>
+            `<li><strong>${escHtml(b.name)}</strong> by ${escHtml(b.author)}</li>`,
+        )
+        .join("")
       : "<li><em>No books listed yet</em></li>";
 
   return `
