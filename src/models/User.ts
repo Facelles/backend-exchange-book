@@ -21,6 +21,8 @@ class User extends Model<
   declare avatarUrl: CreationOptional<string | null>;
   declare resetPasswordToken: CreationOptional<string | null>;
   declare resetPasswordExpires: CreationOptional<Date | null>;
+  declare isEmailVerified: CreationOptional<boolean>;
+  declare emailVerificationToken: CreationOptional<string | null>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -52,12 +54,10 @@ User.init(
     name: {
       type: DataTypes.STRING(255),
       allowNull: true,
-      defaultValue: null,
     },
     avatarUrl: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(1024),
       allowNull: true,
-      defaultValue: null,
     },
     resetPasswordToken: {
       type: DataTypes.STRING(255),
@@ -68,6 +68,15 @@ User.init(
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null,
+    },
+    isEmailVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    emailVerificationToken: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

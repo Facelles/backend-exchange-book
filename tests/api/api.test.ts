@@ -1,16 +1,12 @@
 import request from 'supertest';
 import app from '../../src/app';
 import sequelize from '../../src/config/database';
-import { User, Book } from '../../src/models';
-
-beforeAll(async () => {
-  await sequelize.authenticate();
-  await sequelize.sync({ force: true });
-});
+import { User, Book, ExchangeRequest } from '../../src/models';
+import { Op } from 'sequelize';
 
 beforeEach(async () => {
-  await Book.destroy({ where: {} });
-  await User.destroy({ where: {} });
+  // Clean up only test users before each test, which will cascade delete their books and requests
+  await User.destroy({ where: { email: { [Op.like]: '%@test.com' } } });
 });
 
 afterAll(async () => {
@@ -116,5 +112,69 @@ describe('DELETE /api/books/:id (ownership)', () => {
       .set('Authorization', `Bearer ${ownerToken}`);
 
     expect(deleteRes.status).toBe(204);
+  });
+});
+
+import * as mailerService from '../../src/services/mailerService';
+
+describe('POST /api/books/:id/exchange', () => {
+  let sendEmailSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    // Mock the mailer to avoid sending real emails during tests
+    sendEmailSpy = jest.spyOn(mailerService, 'sendExchangeEmail').mockResolvedValue();
+  });
+
+  afterEach(() => {
+    sendEmailSpy.mockRestore();
+  });
+
+  it('creates an exchange request and sends an email', async () => {
+    const { token: ownerToken } = await registerUser('owner@test.com', 'pass1');
+    const { token: requesterToken, userId: requesterId } = await registerUser('requester@test.com', 'pass2');
+
+    // Owner creates a book
+    const createRes = await request(app)
+      .post('/api/books')
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ name: 'Book to exchange', author: 'Author' });
+    
+    const bookId: number = createRes.body.id;
+
+    // Requester requests the exchange
+    const exchangeRes = await request(app)
+      .post(`/api/books/${bookId}/exchange`)
+      .set('Authorization', `Bearer ${requesterToken}`);
+
+    expect(exchangeRes.status).toBe(200);
+    expect(exchangeRes.body.message).toMatch(/Exchange request sent/);
+    
+    // Verify email was attempted
+    expect(sendEmailSpy).toHaveBeenCalledTimes(1);
+    
+    // Verify it was saved to DB
+    const requestsInDb = await ExchangeRequest.findAll({ where: { bookId } });
+    expect(requestsInDb.length).toBe(1);
+    expect(requestsInDb[0].senderId).toBe(requesterId);
+    expect(requestsInDb[0].status).toBe('PENDING');
+  });
+
+  it('returns 400 if user tries to exchange their own book', async () => {
+    const { token: ownerToken } = await registerUser('owner-self@test.com', 'pass1');
+
+    const createRes = await request(app)
+      .post('/api/books')
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ name: 'My Own Book', author: 'Author' });
+    
+    const bookId: number = createRes.body.id;
+
+    const exchangeRes = await request(app)
+      .post(`/api/books/${bookId}/exchange`)
+      .set('Authorization', `Bearer ${ownerToken}`);
+
+    expect(exchangeRes.status).toBe(400);
+    expect(exchangeRes.body.message).toBe('You cannot exchange your own book');
+    expect(sendEmailSpy).not.toHaveBeenCalled();
   });
 });

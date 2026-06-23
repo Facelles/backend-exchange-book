@@ -1,0 +1,80 @@
+import { Request, Response } from 'express';
+import { Op } from 'sequelize';
+import { User, Book, ExchangeRequest } from '../models';
+
+export const getProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await User.findByPk(req.user!.id, {
+      attributes: ['id', 'email', 'name', 'avatarUrl', 'role', 'createdAt'],
+    });
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const bookCount = await Book.count({ where: { ownerId: user.id } });
+
+    res.json({
+      ...user.toJSON(),
+      bookCount,
+    });
+  } catch (err) {
+    console.error('getProfile error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, avatarUrl } = req.body as { name?: string; avatarUrl?: string };
+
+    const user = await User.findByPk(req.user!.id);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    if (name !== undefined) user.name = name;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+    await user.save();
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+    });
+  } catch (err) {
+    console.error('updateProfile error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getRequests = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    // We want exchange requests where the user is either the sender or the receiver
+    // The front-end probably wants them separated, or we can just return all
+    // Let's return all where the user is involved
+    const requests = await ExchangeRequest.findAll({
+      where: {
+        receiverId: userId
+      },
+      include: [
+        { model: User, as: 'sender', attributes: ['id', 'email', 'name', 'avatarUrl'] },
+        { model: User, as: 'receiver', attributes: ['id', 'email', 'name', 'avatarUrl'] },
+        { model: Book, as: 'book', attributes: ['id', 'name', 'author', 'photoUrl'] },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json(requests);
+  } catch (err) {
+    console.error('getRequests error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
