@@ -31,7 +31,6 @@ const extractPayload = (req: Request): JwtPayload => {
   return jwt.verify(token, secret) as JwtPayload;
 };
 
-
 export const authenticate = async (
   req: Request,
   res: Response,

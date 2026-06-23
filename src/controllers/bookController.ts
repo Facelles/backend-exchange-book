@@ -3,6 +3,27 @@ import { Op } from 'sequelize';
 import { Book, User } from '../models';
 import { sendExchangeEmail } from '../services/mailerService';
 
+export const getBookById = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const book = await Book.findByPk(Number(req.params['id']), {
+      include: [{ model: User, as: 'owner', attributes: ['id', 'email'] }],
+    });
+
+    if (!book) {
+      res.status(404).json({ message: 'Book not found' });
+      return;
+    }
+
+    res.json(book);
+  } catch (err) {
+    console.error('getBookById error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getBooks = async (req: Request, res: Response): Promise<void> => {
   try {
     const search = (req.query['search'] as string | undefined) ?? '';
